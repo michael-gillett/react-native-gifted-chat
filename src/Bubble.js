@@ -19,10 +19,10 @@ import Color from './Color';
 import { isSameUser, isSameDay, warnDeprecated } from './utils';
 
 export default class Bubble extends React.Component {
-
   constructor(props) {
     super(props);
     this.onLongPress = this.onLongPress.bind(this);
+    this.onPress = this.onPress.bind(this);
   }
 
   onLongPress() {
@@ -36,7 +36,7 @@ export default class Bubble extends React.Component {
           options,
           cancelButtonIndex,
         },
-        (buttonIndex) => {
+        buttonIndex => {
           switch (buttonIndex) {
             case 0:
               Clipboard.setString(this.props.currentMessage.text);
@@ -44,8 +44,14 @@ export default class Bubble extends React.Component {
             default:
               break;
           }
-        },
+        }
       );
+    }
+  }
+
+  onPress() {
+    if (this.props.onPress) {
+      this.props.onPress(this.context, this.props.currentMessage);
     }
   }
 
@@ -108,8 +114,12 @@ export default class Bubble extends React.Component {
     if (currentMessage.sent || currentMessage.received) {
       return (
         <View style={styles.tickView}>
-          {currentMessage.sent && <Text style={[styles.tick, this.props.tickStyle]}>✓</Text>}
-          {currentMessage.received && <Text style={[styles.tick, this.props.tickStyle]}>✓</Text>}
+          {currentMessage.sent && (
+            <Text style={[styles.tick, this.props.tickStyle]}>✓</Text>
+          )}
+          {currentMessage.received && (
+            <Text style={[styles.tick, this.props.tickStyle]}>✓</Text>
+          )}
         </View>
       );
     }
@@ -152,6 +162,7 @@ export default class Bubble extends React.Component {
         >
           <TouchableWithoutFeedback
             onLongPress={this.onLongPress}
+            onPress={this.onPress}
             accessibilityTraits="text"
             {...this.props.touchableProps}
           >
@@ -159,7 +170,12 @@ export default class Bubble extends React.Component {
               {this.renderCustomView()}
               {this.renderMessageImage()}
               {this.renderMessageText()}
-              <View style={[styles.bottom, this.props.bottomContainerStyle[this.props.position]]}>
+              <View
+                style={[
+                  styles.bottom,
+                  this.props.bottomContainerStyle[this.props.position],
+                ]}
+              >
                 {this.renderTime()}
                 {this.renderTicks()}
               </View>
@@ -169,7 +185,6 @@ export default class Bubble extends React.Component {
       </View>
     );
   }
-
 }
 
 const styles = {
@@ -233,6 +248,7 @@ Bubble.contextTypes = {
 Bubble.defaultProps = {
   touchableProps: {},
   onLongPress: null,
+  onPress: null,
   renderMessageImage: null,
   renderMessageText: null,
   renderCustomView: null,
@@ -261,6 +277,7 @@ Bubble.propTypes = {
   user: PropTypes.object.isRequired,
   touchableProps: PropTypes.object,
   onLongPress: PropTypes.func,
+  onPress: PropTypes.func,
   renderMessageImage: PropTypes.func,
   renderMessageText: PropTypes.func,
   renderCustomView: PropTypes.func,
